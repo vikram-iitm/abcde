@@ -1,0 +1,145 @@
+{{- if .Values.migrations.enabled -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "onyx-stack.fullname" . }}-db-migrate
+  labels:
+    {{- include "onyx-stack.labels" . | nindent 4 }}
+    app.kubernetes.io/component: migrations
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": hook-succeeded
+spec:
+  template:
+    metadata:
+      name: {{ include "onyx-stack.fullname" . }}-db-migrate
+      labels:
+        {{- include "onyx-stack.labels" . | nindent 8 }}
+        app.kubernetes.io/component: migrations
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: migrate
+          image: "{{ .Values.api.image.repository }}:{{ .Values.api.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.api.image.pullPolicy }}
+          command:
+            - /bin/bash
+            - -c
+            - |
+              set -e
+
+              echo "🔄 Waiting for database to be available..."
+              until pg_isready -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB"; do
+                  echo "Database is unavailable - sleeping"
+                  sleep 2
+              done
+
+              echo "✅ Database is available"
+
+              echo "🔄 Running database migrations..."
+              cd /app/backend
+
+              # Run alembic migrations
+              if alembic upgrade head; then
+                  echo "✅ Database migrations completed successfully"
+
+                  # Verify migration
+                  NEW_VERSION=$(alembic current --verbose)
+                  echo "📈 Database is now at version: $NEW_VERSION"
+
+                  # Create readonly user if it doesn't exist
+                  echo "👤 Setting up readonly user..."
+                  psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" << 'EOF'
+                  DO $$
+                  BEGIN
+                      IF NOT EXISTS (
+                          SELECT FROM pg_catalog.pg_roles
+                          WHERE rolname = 'db_readonly_user'
+                      ) THEN
+                          CREATE ROLE db_readonly_user WITH LOGIN PASSWORD '${DB_READONLY_PASSWORD}';
+                      END IF;
+                  END
+                  $$;
+
+                  -- Grant readonly permissions
+                  GRANT USAGE ON SCHEMA public TO db_readonly_user;
+                  GRANT SELECT ON ALL TABLES IN SCHEMA public TO db_readonly_user;
+                  GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO db_readonly_user;
+
+                  -- Set default permissions for future objects
+                  ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO db_readonly_user;
+                  ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON SEQUENCES TO db_readonly_user;
+                  EOF
+
+                  echo "✅ Database setup complete"
+              else
+                  echo "❌ Database migrations failed"
+                  exit 1
+              fi
+          env:
+            # Database configuration
+            - name: POSTGRES_HOST
+              value: {{ .Values.externalPostgresql.host | quote }}
+            - name: POSTGRES_PORT
+              value: {{ .Values.externalPostgresql.port | default "5432" | quote }}
+            - name: POSTGRES_DB
+              value: {{ .Values.externalPostgresql.database | default "onyx" | quote }}
+            - name: POSTGRES_USER
+              value: {{ .Values.externalPostgresql.username | default "postgres" | quote }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "onyx-stack.fullname" . }}-gcp-secrets
+                  key: POSTGRES_PASSWORD
+            - name: DB_READONLY_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "onyx-stack.fullname" . }}-gcp-secrets
+                  key: DB_READONLY_PASSWORD
+            - name: POSTGRES_SSL_MODE
+              value: {{ .Values.externalPostgresql.sslMode | default "require" | quote }}
+
+            # Redis configuration
+            - name: REDIS_HOST
+              value: {{ .Values.externalRedis.host | quote }}
+            - name: REDIS_PORT
+              value: {{ .Values.externalRedis.port | default "6379" | quote }}
+            {{- if .Values.externalRedis.password }}
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "onyx-stack.fullname" . }}-gcp-secrets
+                  key: REDIS_PASSWORD
+            {{- end }}
+
+            # Application configuration
+            - name: SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "onyx-stack.fullname" . }}-gcp-secrets
+                  key: SECRET
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

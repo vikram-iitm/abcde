@@ -1,0 +1,41 @@
+{{- if .Values.ingress.enabled -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "onyx-stack.fullname" . }}-ingress-gcp
+  annotations:
+    kubernetes.io/ingress.class: "gce"
+    kubernetes.io/ingress.global-static-ip-name: "onyx-lb-ip"
+    networking.gke.io/managed-certificates: "onyx-managed-cert"
+spec:
+  rules:
+    - host: {{ .Values.ingress.host }}
+      http:
+        paths:
+          # API paths
+          - path: /api/*
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "onyx-stack.fullname" . }}-api-service
+                port:
+                  number: {{ .Values.api.service.servicePort }}
+          # Web server paths
+          - path: /*
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "onyx-stack.fullname" . }}-webserver-service
+                port:
+                  number: {{ .Values.webserver.service.servicePort }}
+---
+# GCP Managed Certificate
+apiVersion: networking.gke.io/v1
+kind: ManagedCertificate
+metadata:
+  name: onyx-managed-cert
+spec:
+  domains:
+    - {{ .Values.ingress.host }}
+    - www.{{ .Values.ingress.host }}
+{{- end }}

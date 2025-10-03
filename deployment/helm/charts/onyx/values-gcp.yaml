@@ -1,0 +1,318 @@
+# GCP-specific values for Onyx deployment
+# This file overrides the default values.yaml for Google Cloud Platform
+
+global:
+  version: "latest"
+  pullPolicy: "IfNotPresent"
+  # GCP-specific settings
+  gcp:
+    project: "onyx-test-ramdev-live"
+    region: "asia-south1"
+    zone: "asia-south1-a"
+
+# Disable embedded PostgreSQL - using Cloud SQL instead
+postgresql:
+  enabled: false
+
+# External Cloud SQL configuration
+externalPostgresql:
+  enabled: true
+  host: "10.72.0.3"  # Cloud SQL private IP
+  port: "5432"
+  database: "onyx"
+  username: "postgres"
+  # Password will be set via secrets
+  sslMode: "require"
+
+# Redis configuration using Memorystore
+redis:
+  enabled: false  # Disable embedded Redis
+
+externalRedis:
+  enabled: true
+  host: "10.72.1.4"  # Memorystore private IP
+  port: "6379"
+  # Password will be set via secrets if needed
+
+# Vespa configuration
+vespa:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: vespa
+    tag: "8.526.15"
+  volumeClaimTemplates:
+    - metadata:
+        name: vespa-storage
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 50Gi  # Increased for GCP persistent disk
+        storageClassName: "standard-rwo"  # GCP standard persistent disk
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "2Gi"
+    limits:
+      cpu: "2000m"
+      memory: "4Gi"
+  nodeSelector:
+    workload: "memory-intensive"  # Use memory-optimized nodes
+
+# Storage configuration for GCP
+storage:
+  fileStore:
+    bucket: "onyx-file-store-ramdev-123456"
+    endpoint: "https://storage.googleapis.com"
+  logs:
+    bucket: "onyx-logs-ramdev-123456"
+  backups:
+    bucket: "onyx-backups-ramdev-123456"
+
+# Web server configuration
+webserver:
+  replicaCount: 2
+  image:
+    repository: "gcr.io/onyx-test-ramdev-live/webserver"
+    tag: "latest"
+    pullPolicy: "Always"
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "512Mi"
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+
+# API server configuration
+api:
+  replicaCount: 2
+  image:
+    repository: "gcr.io/onyx-test-ramdev-live/api"
+    tag: "latest"
+    pullPolicy: "Always"
+  resources:
+    requests:
+      cpu: "300m"
+      memory: "768Mi"
+    limits:
+      cpu: "1500m"
+      memory: "2Gi"
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+
+# Model servers - disabled for team deployment initially
+modelServers:
+  enabled: false
+  inference:
+    enabled: false
+  indexing:
+    enabled: false
+
+# Celery workers configuration for team deployment
+celery:
+  # Primary worker (core tasks)
+  primary:
+    enabled: true
+    replicaCount: 1
+    resources:
+      requests:
+        cpu: "200m"
+        memory: "512Mi"
+      limits:
+        cpu: "1000m"
+        memory: "1Gi"
+    autoscaling:
+      enabled: false  # Fixed size for team deployment
+
+  # Document fetching worker
+  docfetching:
+    enabled: true
+    replicaCount: 1
+    resources:
+      requests:
+        cpu: "200m"
+        memory: "512Mi"
+      limits:
+        cpu: "1000m"
+        memory: "1Gi"
+    autoscaling:
+      enabled: false
+
+  # Document processing worker
+  docprocessing:
+    enabled: true
+    replicaCount: 1
+    resources:
+      requests:
+        cpu: "300m"
+        memory: "1Gi"
+      limits:
+        cpu: "1500m"
+        memory: "2Gi"
+    nodeSelector:
+      workload: "memory-intensive"
+    autoscaling:
+      enabled: false
+
+  # Light worker (fast operations)
+  light:
+    enabled: true
+    replicaCount: 1
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "256Mi"
+      limits:
+        cpu: "500m"
+        memory: "512Mi"
+    autoscaling:
+      enabled: false
+
+  # Heavy worker (resource-intensive tasks)
+  heavy:
+    enabled: true
+    replicaCount: 1
+    resources:
+      requests:
+        cpu: "500m"
+        memory: "1Gi"
+      limits:
+        cpu: "2000m"
+        memory: "4Gi"
+    nodeSelector:
+      workload: "memory-intensive"
+    autoscaling:
+      enabled: false
+
+  # KG Processing worker
+  kgProcessing:
+    enabled: false  # Disabled for team deployment
+
+  # Monitoring worker
+  monitoring:
+    enabled: true
+    replicaCount: 1
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "256Mi"
+      limits:
+        cpu: "500m"
+        memory: "512Mi"
+    autoscaling:
+      enabled: false
+
+  # Beat worker (scheduler)
+  beat:
+    enabled: true
+    replicaCount: 1
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "256Mi"
+      limits:
+        cpu: "500m"
+        memory: "512Mi"
+    autoscaling:
+      enabled: false
+
+# Ingress configuration using GCP Global Load Balancer
+ingress:
+  enabled: true
+  className: "gce"  # GCE Ingress Controller
+  host: "ramdev.live"
+  tls:
+    enabled: true
+    secretName: "onyx-tls-secret"
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: "onyx-lb-ip"
+    networking.gke.io/managed-certificates: "onyx-cert"
+    kubernetes.io/ingress.class: "gce"
+
+# Service account configuration
+serviceAccount:
+  create: true
+  name: "onyx-service-account"
+  annotations:
+    iam.gke.io/gcp-service-account: "onyx-gke-sa@onyx-test-ramdev-live.iam.gserviceaccount.com"
+
+# Disable KEDA autoscaling for now
+keda:
+  enabled: false
+
+# Disable all autoscaling for simplified deployment
+autoscaling:
+  enabled: false
+
+# Resource limits and requests optimized for team deployment
+resourceLimits:
+  enabled: true
+  default:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+# Monitoring and logging configuration
+monitoring:
+  enabled: true
+  gcp:
+    operationsSuite:
+      enabled: true
+    cloudLogging:
+      enabled: true
+    cloudMonitoring:
+      enabled: true
+
+# Security configuration
+security:
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 3000
+    fsGroup: 2000
+
+# Environment variables that will be passed to all pods
+env:
+  # Domain configuration
+  WEB_DOMAIN: "https://ramdev.live"
+  DOMAIN: "ramdev.live"
+  AUTH_TYPE: "google_oauth"
+
+# ConfigMap configuration
+config:
+  envConfigMapName: "env-configmap"
+configMap:
+  AUTH_TYPE: "google_oauth"
+  SESSION_EXPIRE_TIME_SECONDS: "604800"
+  VALID_EMAIL_DOMAINS: ""
+  REQUIRE_EMAIL_VERIFICATION: "false"
+  SMTP_SERVER: ""
+  SMTP_PORT: "587"
+  SMTP_USER: ""
+  EMAIL_FROM: ""
+  S3_ENDPOINT_URL: ""
+  QA_TIMEOUT: "60"
+
+# Database migration configuration
+migrations:
+  enabled: true
+  image:
+    repository: "gcr.io/onyx-test-ramdev-live/api"
+    tag: "latest"
+    pullPolicy: "Always"

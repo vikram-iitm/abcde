@@ -1,0 +1,2840 @@
+coalesce.go:301: warning: destination for nginx.ingress.tls is a table. Ignoring non-table value (false)
+coalesce.go:301: warning: destination for minio.ingress.tls is a table. Ignoring non-table value (false)
+---
+# Source: onyx-stack/charts/minio/templates/console/networkpolicy.yaml
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: release-name-minio-console
+  namespace: "onyx"
+  labels:
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/version: 2.0.1
+    helm.sh/chart: minio-17.0.4
+    app.kubernetes.io/component: console
+    app.kubernetes.io/part-of: minio
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/name: minio
+      app.kubernetes.io/component: console
+      app.kubernetes.io/part-of: minio
+  policyTypes:
+    - Ingress
+    - Egress
+  egress:
+    - {}
+  ingress:
+    # Allow inbound connections
+    - ports:
+        - port: 9090
+---
+# Source: onyx-stack/charts/minio/templates/networkpolicy.yaml
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: release-name-minio
+  namespace: "onyx"
+  labels:
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/version: 2025.5.24
+    helm.sh/chart: minio-17.0.4
+    app.kubernetes.io/component: minio
+    app.kubernetes.io/part-of: minio
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/name: minio
+      app.kubernetes.io/component: minio
+      app.kubernetes.io/part-of: minio
+  policyTypes:
+    - Ingress
+    - Egress
+  egress:
+    - {}
+  ingress:
+    # Allow inbound connections
+    - ports:
+        - port: 9000
+---
+# Source: onyx-stack/charts/nginx/templates/networkpolicy.yaml
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: release-name-nginx
+  namespace: "onyx"
+  labels:
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: nginx
+    app.kubernetes.io/version: 1.25.4
+    helm.sh/chart: nginx-15.14.0
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/name: nginx
+  policyTypes:
+    - Ingress
+    - Egress
+  egress:
+    - {}
+  ingress:
+    - ports:
+        - port: 1024
+---
+# Source: onyx-stack/charts/minio/templates/console/pdb.yaml
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: release-name-minio-console
+  namespace: "onyx"
+  labels:
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/version: 2.0.1
+    helm.sh/chart: minio-17.0.4
+    app.kubernetes.io/component: console
+    app.kubernetes.io/part-of: minio
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/name: minio
+      app.kubernetes.io/component: console
+      app.kubernetes.io/part-of: minio
+---
+# Source: onyx-stack/charts/minio/templates/pdb.yaml
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: release-name-minio
+  namespace: "onyx"
+  labels:
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/version: 2025.5.24
+    helm.sh/chart: minio-17.0.4
+    app.kubernetes.io/component: minio
+    app.kubernetes.io/part-of: minio
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/name: minio
+      app.kubernetes.io/component: minio
+      app.kubernetes.io/part-of: minio
+---
+# Source: onyx-stack/charts/minio/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: release-name-minio
+  namespace: "onyx"
+  labels:
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/version: 2025.5.24
+    helm.sh/chart: minio-17.0.4
+    app.kubernetes.io/part-of: minio
+automountServiceAccountToken: false
+secrets:
+  - name: release-name-minio
+---
+# Source: onyx-stack/charts/nginx/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: release-name-nginx
+  namespace: "onyx"
+  labels:
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: nginx
+    app.kubernetes.io/version: 1.25.4
+    helm.sh/chart: nginx-15.14.0
+automountServiceAccountToken: false
+---
+# Source: onyx-stack/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: onyx-service-account
+  labels:
+    helm.sh/chart: onyx-stack-0.3.1
+    app.kubernetes.io/name: onyx-stack
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    iam.gke.io/gcp-service-account: onyx-gke-sa@onyx-test-ramdev-live.iam.gserviceaccount.com
+automountServiceAccountToken: true
+---
+# Source: onyx-stack/templates/auth-secrets.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: onyx-stack-gcp-secrets
+type: Opaque
+stringData:
+---
+# Source: onyx-stack/templates/auth-secrets.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: onyx-oauth
+type: Opaque
+stringData:
+  oauth_client_id: ""
+  oauth_client_secret: ""
+  oauth_cookie_secret: ""
+---
+# Source: onyx-stack/templates/auth-secrets.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: onyx-objectstorage
+type: Opaque
+stringData:
+  s3_aws_access_key_id: "minioadmin"
+  s3_aws_secret_access_key: "minioadmin"
+---
+# Source: onyx-stack/templates/auth-secrets.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: onyx-stack-gcp-secrets
+type: Opaque
+stringData:
+  postgres_password: "postgres"
+---
+# Source: onyx-stack/templates/auth-secrets.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: onyx-redis
+type: Opaque
+stringData:
+  redis_password: "password"
+---
+# Source: onyx-stack/templates/auth-secrets.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: onyx-smtp
+type: Opaque
+stringData:
+  smtp_pass: ""
+---
+# Source: onyx-stack/templates/secrets-gcp.yaml
+# GCP-specific secrets for Onyx deployment
+# These secrets contain sensitive configuration data
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: release-name-onyx-stack-gcp-secrets
+  labels:
+    helm.sh/chart: onyx-stack-0.3.1
+    app.kubernetes.io/name: onyx-stack
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/managed-by: Helm
+type: Opaque
+data:
+  # Database credentials (base64 encoded)
+  POSTGRES_PASSWORD: "RHR6YXE1Z0xNbVdZQW1ualpMZmQrSnM0UittaGZLbVdPSEtsQjFtckRvZz0="
+
+  # Redis credentials (if needed)
+
+  # Google OAuth credentials
+  GOOGLE_OAUTH_CLIENT_ID: "WU9VUl9HT09HTEVfT0FVVEhfQ0xJRU5UX0lEX0hFUkU="
+  GOOGLE_OAUTH_CLIENT_SECRET: "WU9VUl9HT09HTEVfT0FVVEhfQ0xJRU5UX1NFQ1JFVF9IRVJF"
+
+  # Application secret key
+  SECRET: "bjhXW3ptcmd6YWFKOFllT0YzZ2Q0eU9GYkNVVk96ekFaLzNQV3owTVNzK29mbWt1a3k0QWg2dEhlMUVsNnR6MUJtS2RHTjExbUI4ZzI1UmZqOVVVQT09"
+
+  # Database readonly user (if needed)
+  DB_READONLY_USER: "ZGJfcmVhZG9ubHlfdXNlcg=="
+  DB_READONLY_PASSWORD: "anVhQUM2UmswbFpOTStUWnFoWlI2OUJhWllWY0dKZlZ6VFVyZVhJUU05OD0="
+
+  # Cloud Storage credentials (if using service account)
+
+  # Model API keys (if needed)
+
+  # Additional environment variables
+---
+# Source: onyx-stack/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: env-configmap
+  labels:
+    helm.sh/chart: onyx-stack-0.3.1
+    app.kubernetes.io/name: onyx-stack
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/managed-by: Helm
+data:
+  INTERNAL_URL: "http://release-name-onyx-stack-api-service:8080"
+  POSTGRES_HOST: 10.72.0.3
+  POSTGRES_PORT: 5432
+  VESPA_HOST: da-vespa-0.vespa-service.onyx.svc.cluster.local
+  REDIS_HOST: 10.72.1.4
+  REDIS_PORT: 6379
+  MODEL_SERVER_HOST: "release-name-onyx-stack-inference-model-service"
+  INDEXING_MODEL_SERVER_HOST: "release-name-onyx-stack-indexing-model-service"
+  AUTH_TYPE: "google_oauth"
+  DOMAIN: "localhost"
+  QA_TIMEOUT: "60"
+  REQUIRE_EMAIL_VERIFICATION: "false"
+  SESSION_EXPIRE_TIME_SECONDS: "604800"
+  SMTP_PORT: "587"
+  WEB_DOMAIN: "http://localhost:3000"
+  S3_ENDPOINT_URL: "http://release-name-minio:9000"
+---
+# Source: onyx-stack/templates/nginx-conf.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: onyx-nginx-conf
+data:
+  nginx.conf: |
+    upstream api_server {
+        server release-name-onyx-stack-api-service:8080 fail_timeout=0;
+    }
+
+    upstream web_server {
+        server release-name-onyx-stack-webserver:3000 fail_timeout=0;
+    }
+
+    server {
+        listen 1024;
+        server_name $$DOMAIN;
+
+        client_max_body_size 5G;    # Maximum upload size
+
+        location ~ ^/api(.*)$ {
+            rewrite ^/api(/.*)$ $1 break;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header X-Forwarded-Host $host;
+            proxy_set_header Host $host;
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_redirect off;
+            proxy_pass http://api_server;
+        }
+
+        location / {
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header X-Forwarded-Host $host;
+            proxy_set_header Host $host;
+            proxy_http_version 1.1;
+            proxy_redirect off;
+            proxy_pass http://web_server;
+        }
+    }
+---
+# Source: onyx-stack/charts/minio/templates/pvc.yaml
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: release-name-minio
+  namespace: "onyx"
+  labels:
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/version: 2025.5.24
+    helm.sh/chart: minio-17.0.4
+    app.kubernetes.io/component: minio
+    app.kubernetes.io/part-of: minio
+spec:
+  accessModes:
+    - "ReadWriteOnce"
+  resources:
+    requests:
+      storage: "30Gi"
+---
+# Source: onyx-stack/charts/minio/templates/console/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-minio-console
+  namespace: "onyx"
+  labels:
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/version: 2.0.1
+    helm.sh/chart: minio-17.0.4
+    app.kubernetes.io/component: console
+    app.kubernetes.io/part-of: minio
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 9090
+      targetPort: http
+      nodePort: null
+  selector:
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/component: console
+    app.kubernetes.io/part-of: minio
+---
+# Source: onyx-stack/charts/minio/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-minio
+  namespace: "onyx"
+  labels:
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/version: 2025.5.24
+    helm.sh/chart: minio-17.0.4
+    app.kubernetes.io/component: minio
+    app.kubernetes.io/part-of: minio
+spec:
+  type: ClusterIP
+  ports:
+    - name: tcp-api
+      port: 9000
+      targetPort: api
+      nodePort: null
+  selector:
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/component: minio
+    app.kubernetes.io/part-of: minio
+---
+# Source: onyx-stack/charts/nginx/templates/svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-nginx
+  namespace: "onyx"
+  labels:
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: nginx
+    app.kubernetes.io/version: 1.25.4
+    helm.sh/chart: nginx-15.14.0
+  annotations:
+spec:
+  type: LoadBalancer
+  sessionAffinity: None
+  externalTrafficPolicy: "Cluster"
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+  selector:
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/name: nginx
+---
+# Source: onyx-stack/charts/vespa/templates/service.yaml
+# a headless service that allows individual access to each pod in the StatefulSet
+apiVersion: v1
+kind: Service
+metadata:
+  name: vespa-service  # This should match statefulset.yaml/spec/serviceName
+  labels:
+    app: vespa
+spec:
+  clusterIP: None
+  ports:
+    - port: 19071
+      targetPort: 19071
+      protocol: TCP
+      name: vespa-tenant-port
+    - port: 8081
+      targetPort: 8081
+      protocol: TCP
+      name: vespa-port
+  selector:
+    app: vespa
+    app.kubernetes.io/instance: onyx
+    app.kubernetes.io/name: vespa
+---
+# Source: onyx-stack/templates/api-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  # INTERNAL_URL env variable depends on this, don't change without changing INTERNAL_URL
+  name: release-name-onyx-stack-api-service
+  labels:
+    helm.sh/chart: onyx-stack-0.3.1
+    app.kubernetes.io/name: onyx-stack
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/managed-by: Helm
+    app: api-server
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      targetPort: api-server-port
+      protocol: TCP
+      name: api-server-port
+  selector:
+    app.kubernetes.io/name: onyx-stack
+    app.kubernetes.io/instance: release-name
+    app: api-server
+---
+# Source: onyx-stack/templates/indexing-model-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-onyx-stack-indexing-model-service
+  labels:
+    helm.sh/chart: onyx-stack-0.3.1
+    app.kubernetes.io/name: onyx-stack
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  selector:
+    app.kubernetes.io/name: onyx-stack
+    app.kubernetes.io/instance: release-name
+    app: indexing-model-server
+  ports:
+    - name: modelserver
+      protocol: TCP
+      port: 9000
+      targetPort: 9000
+  type: ClusterIP
+---
+# Source: onyx-stack/templates/inference-model-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-onyx-stack-inference-model-service
+spec:
+  type: ClusterIP
+  ports:
+    - port: 9000
+      targetPort: 9000
+      protocol: TCP
+      name: modelserver
+  selector:
+    app: inference-model-server
+---
+# Source: onyx-stack/templates/webserver-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-onyx-stack-webserver
+  labels:
+    helm.sh/chart: onyx-stack-0.3.1
+    app.kubernetes.io/name: onyx-stack
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/managed-by: Helm
+    app: web-server
+spec:
+  type: ClusterIP
+  ports:
+    - port: 3000
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: onyx-stack
+    app.kubernetes.io/instance: release-name
+    app: web-server
+---
+# Source: onyx-stack/charts/minio/templates/application.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-minio
+  namespace: "onyx"
+  labels:
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/version: 2025.5.24
+    helm.sh/chart: minio-17.0.4
+    app.kubernetes.io/component: minio
+    app.kubernetes.io/part-of: minio
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/name: minio
+      app.kubernetes.io/component: minio
+      app.kubernetes.io/part-of: minio
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: minio
+        app.kubernetes.io/version: 2025.5.24
+        helm.sh/chart: minio-17.0.4
+        app.kubernetes.io/component: minio
+        app.kubernetes.io/part-of: minio
+    spec:
+      
+      serviceAccountName: release-name-minio
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/instance: release-name
+                    app.kubernetes.io/name: minio
+                    app.kubernetes.io/component: minio
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      automountServiceAccountToken: false
+      securityContext:
+        fsGroup: 1001
+        fsGroupChangePolicy: OnRootMismatch
+        supplementalGroups: []
+        sysctls: []
+      initContainers:
+      containers:
+        - name: minio
+          image: docker.io/bitnami/minio:2025.5.24-debian-12-r5
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            privileged: false
+            readOnlyRootFilesystem: true
+            runAsGroup: 1001
+            runAsNonRoot: true
+            runAsUser: 1001
+            seLinuxOptions: {}
+            seccompProfile:
+              type: RuntimeDefault
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: MINIO_DISTRIBUTED_MODE_ENABLED
+              value: "no"
+            - name: MINIO_SCHEME
+              value: "http"
+            - name: MINIO_FORCE_NEW_KEYS
+              value: "no"
+            - name: MINIO_ROOT_USER_FILE
+              value: /opt/bitnami/minio/secrets/s3_aws_access_key_id
+            - name: MINIO_ROOT_PASSWORD_FILE
+              value: /opt/bitnami/minio/secrets/s3_aws_secret_access_key
+            - name: MINIO_SKIP_CLIENT
+              value: "no"
+            - name: MINIO_DEFAULT_BUCKETS
+              value: onyx-file-store-bucket
+            - name: MINIO_API_PORT_NUMBER
+              value: "9000"
+            - name: MINIO_BROWSER
+              value: "off"
+            - name: MINIO_PROMETHEUS_AUTH_TYPE
+              value: "public"
+            - name: MINIO_DATA_DIR
+              value: "/bitnami/minio/data"
+          ports:
+            - name: api
+              containerPort: 9000
+          livenessProbe:
+            httpGet:
+              path: /minio/health/live
+              port: api
+              scheme: "HTTP"
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 5
+          readinessProbe:
+            tcpSocket:
+              port: api
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 5
+          resources:
+            limits:
+              cpu: 375m
+              ephemeral-storage: 2Gi
+              memory: 384Mi
+            requests:
+              cpu: 250m
+              ephemeral-storage: 50Mi
+              memory: 256Mi
+          volumeMounts:
+            - name: empty-dir
+              mountPath: /tmp
+              subPath: tmp-dir
+            - name: empty-dir
+              mountPath: /opt/bitnami/minio/tmp
+              subPath: app-tmp-dir
+            - name: empty-dir
+              mountPath: /.mc
+              subPath: app-mc-dir
+            - name: minio-credentials
+              mountPath: /opt/bitnami/minio/secrets/
+            - name: data
+              mountPath: /bitnami/minio/data
+      volumes:
+        - name: empty-dir
+          emptyDir: {}
+        - name: minio-credentials
+          secret:
+            secretName: onyx-objectstorage
+        - name: data
+          persistentVolumeClaim:
+            claimName: release-name-minio
+---
+# Source: onyx-stack/charts/minio/templates/console/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-minio-console
+  namespace: "onyx"
+  labels:
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/version: 2.0.1
+    helm.sh/chart: minio-17.0.4
+    app.kubernetes.io/component: console
+    app.kubernetes.io/part-of: minio
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/name: minio
+      app.kubernetes.io/component: console
+      app.kubernetes.io/part-of: minio
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: minio
+        app.kubernetes.io/version: 2025.5.24
+        helm.sh/chart: minio-17.0.4
+        app.kubernetes.io/component: console
+        app.kubernetes.io/part-of: minio
+    spec:
+      
+      serviceAccountName: release-name-minio
+      automountServiceAccountToken: false
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/instance: release-name
+                    app.kubernetes.io/name: minio
+                    app.kubernetes.io/component: console
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+        fsGroupChangePolicy: Always
+        supplementalGroups: []
+        sysctls: []
+      containers:
+        - name: console
+          image: docker.io/bitnami/minio-object-browser:2.0.1-debian-12-r1
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            privileged: false
+            readOnlyRootFilesystem: true
+            runAsGroup: 1001
+            runAsNonRoot: true
+            runAsUser: 1001
+            seLinuxOptions: {}
+            seccompProfile:
+              type: RuntimeDefault
+          args:
+            - server
+            - --host
+            - "0.0.0.0"
+            - --port
+            - "9090"
+          env:
+            - name: CONSOLE_MINIO_SERVER
+              value: "http://release-name-minio:9000"
+          resources:
+            limits:
+              cpu: 150m
+              ephemeral-storage: 2Gi
+              memory: 192Mi
+            requests:
+              cpu: 100m
+              ephemeral-storage: 50Mi
+              memory: 128Mi
+          ports:
+            - name: http
+              containerPort: 9090
+          livenessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 5
+            tcpSocket:
+              port: http
+          readinessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /minio
+              port: http
+          volumeMounts:
+            - name: empty-dir
+              mountPath: /tmp
+              subPath: tmp-dir
+            - name: empty-dir
+              mountPath: /.console
+              subPath: app-console-dir
+      volumes:
+        - name: empty-dir
+          emptyDir: {}
+---
+# Source: onyx-stack/charts/nginx/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-nginx
+  namespace: "onyx"
+  labels:
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: nginx
+    app.kubernetes.io/version: 1.25.4
+    helm.sh/chart: nginx-15.14.0
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  strategy:
+    rollingUpdate: {}
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/name: nginx
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: nginx
+        app.kubernetes.io/version: 1.25.4
+        helm.sh/chart: nginx-15.14.0
+      annotations:
+    spec:
+      
+      shareProcessNamespace: false
+      serviceAccountName: release-name-nginx
+      automountServiceAccountToken: false
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/instance: release-name
+                    app.kubernetes.io/name: nginx
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      hostNetwork: false
+      hostIPC: false
+      securityContext:
+        fsGroup: 1001
+        fsGroupChangePolicy: Always
+        supplementalGroups: []
+        sysctls: []
+      initContainers:
+        - name: preserve-logs-symlinks
+          image: docker.io/bitnami/nginx:1.25.4-debian-12-r3
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            privileged: false
+            readOnlyRootFilesystem: false
+            runAsGroup: 0
+            runAsNonRoot: true
+            runAsUser: 1001
+            seccompProfile:
+              type: RuntimeDefault
+          command:
+            - /bin/bash
+          args:
+            - -ec
+            - |
+              #!/bin/bash
+              . /opt/bitnami/scripts/libfs.sh
+              # We copy the logs folder because it has symlinks to stdout and stderr
+              if ! is_dir_empty /opt/bitnami/nginx/logs; then
+                cp -r /opt/bitnami/nginx/logs /emptydir/app-logs-dir
+              fi
+          volumeMounts:
+            - name: empty-dir
+              mountPath: /emptydir
+      containers:
+        - name: nginx
+          image: docker.io/bitnami/nginx:1.25.4-debian-12-r3
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            privileged: false
+            readOnlyRootFilesystem: false
+            runAsGroup: 0
+            runAsNonRoot: true
+            runAsUser: 1001
+            seccompProfile:
+              type: RuntimeDefault
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: NGINX_HTTP_PORT_NUMBER
+              value: "1024"
+            - name: DOMAIN
+              value: localhost
+          envFrom:
+          ports:
+            - name: http
+              containerPort: 1024
+          livenessProbe:
+            failureThreshold: 6
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            tcpSocket:
+              port: http
+          readinessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+            tcpSocket:
+              port: http
+          volumeMounts:
+            - name: empty-dir
+              mountPath: /tmp
+              subPath: tmp-dir
+            - name: empty-dir
+              mountPath: /opt/bitnami/nginx/conf
+              subPath: app-conf-dir
+            - name: empty-dir
+              mountPath: /opt/bitnami/nginx/logs
+              subPath: app-logs-dir
+            - name: empty-dir
+              mountPath: /opt/bitnami/nginx/tmp
+              subPath: app-tmp-dir
+            - name: nginx-server-block
+              mountPath: /opt/bitnami/nginx/conf/server_blocks
+      volumes:
+        - name: empty-dir
+          emptyDir: {}
+        - name: nginx-server-block
+          configMap:
+            name: onyx-nginx-conf
+---
+# Source: onyx-stack/templates/api-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-onyx-stack-api-server
+  labels:
+    helm.sh/chart: onyx-stack-0.3.1
+    app.kubernetes.io/name: onyx-stack
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: onyx-stack
+      app.kubernetes.io/instance: release-name
+      app: api-server
+  template:
+    metadata:
+      annotations:
+        checksum/config: 863248a07d1a08bc151292ec79175a40fa650e1c46317d799003ef84c65d0a63
+      labels:
+        helm.sh/chart: onyx-stack-0.3.1
+        app.kubernetes.io/name: onyx-stack
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/version: "latest"
+        app.kubernetes.io/managed-by: Helm
+        app: api-server
+        scope: onyx-backend
+    spec:
+      serviceAccountName: onyx-service-account
+      securityContext:
+        {}
+      containers:
+        - name: api-server
+          securityContext:
+            {}
+          image: "gcr.io/onyx-test-ramdev-live/api:latest"
+          imagePullPolicy: IfNotPresent
+          command:
+            - "/bin/sh"
+            - "-c"
+            - |
+              alembic upgrade head &&
+              echo "Starting Onyx Api Server" &&
+              uvicorn onyx.main:app --host 0.0.0.0 --port 8080
+          ports:
+            - name: api-server-port
+              containerPort: 8080
+              protocol: TCP
+          resources:
+            limits:
+              cpu: 1500m
+              memory: 2Gi
+            requests:
+              cpu: 300m
+              memory: 768Mi
+          envFrom:
+            - configMapRef:
+                name: env-configmap
+          env:
+            
+            - name: "SECRETKEY"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-stack-gcp-secrets
+                  key: SECRET
+            - name: "S3_AWS_ACCESS_KEY_ID"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-objectstorage
+                  key: s3_aws_access_key_id
+            - name: "S3_AWS_SECRET_ACCESS_KEY"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-objectstorage
+                  key: s3_aws_secret_access_key
+            - name: "POSTGRES_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-stack-gcp-secrets
+                  key: postgres_password
+            - name: "ADMINPASSWORDKEY"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-stack-gcp-secrets
+                  key: POSTGRES_PASSWORD
+            - name: "READONLYPASSWORDKEY"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-stack-gcp-secrets
+                  key: DB_READONLY_PASSWORD
+            - name: "REDIS_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-redis
+                  key: redis_password
+---
+# Source: onyx-stack/templates/celery-beat.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-onyx-stack-celery-beat
+  labels:
+    helm.sh/chart: onyx-stack-0.3.1
+    app.kubernetes.io/name: onyx-stack
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: onyx-stack
+      app.kubernetes.io/instance: release-name
+      app: celery-beat
+  template:
+    metadata:
+      annotations:
+        checksum/config: 863248a07d1a08bc151292ec79175a40fa650e1c46317d799003ef84c65d0a63
+      labels:
+        helm.sh/chart: onyx-stack-0.3.1
+        app.kubernetes.io/name: onyx-stack
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/version: "latest"
+        app.kubernetes.io/managed-by: Helm
+        app: celery-beat
+        scope: onyx-backend-celery
+    spec:
+      serviceAccountName: onyx-service-account
+      securityContext:
+        {}
+      containers:
+        - name: celery-beat
+          securityContext:
+            privileged: true
+            runAsUser: 0
+          image: "onyxdotapp/onyx-backend:latest"
+          imagePullPolicy: IfNotPresent
+          command:
+            [
+              "celery",
+              "-A",
+              "onyx.background.celery.versioned_apps.beat",
+              "beat",
+              "--loglevel=INFO",
+            ]
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+            requests:
+              cpu: 1000m
+              memory: 1Gi
+          envFrom:
+            - configMapRef:
+                name: env-configmap
+          env:
+            
+            - name: "SECRETKEY"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-stack-gcp-secrets
+                  key: SECRET
+            - name: "S3_AWS_ACCESS_KEY_ID"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-objectstorage
+                  key: s3_aws_access_key_id
+            - name: "S3_AWS_SECRET_ACCESS_KEY"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-objectstorage
+                  key: s3_aws_secret_access_key
+            - name: "POSTGRES_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-stack-gcp-secrets
+                  key: postgres_password
+            - name: "ADMINPASSWORDKEY"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-stack-gcp-secrets
+                  key: POSTGRES_PASSWORD
+            - name: "READONLYPASSWORDKEY"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-stack-gcp-secrets
+                  key: DB_READONLY_PASSWORD
+            - name: "REDIS_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-redis
+                  key: redis_password
+          startupProbe:
+            
+            exec:
+              command:
+              - test
+              - -f
+              - /app/onyx/main.py
+            failureThreshold: 24
+            periodSeconds: 5
+            timeoutSeconds: 3
+          readinessProbe:
+            
+            failureThreshold: 24
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            timeoutSeconds: 3
+            exec:
+              command:
+                - /bin/bash
+                - -c
+                - >
+                    python onyx/background/celery/celery_k8s_probe.py
+                    --probe readiness
+                    --filename /tmp/onyx_k8s_beat_readiness.txt
+          livenessProbe:
+            
+            failureThreshold: 5
+            initialDelaySeconds: 60
+            periodSeconds: 60
+            timeoutSeconds: 3
+            exec:
+              command:
+                - /bin/bash
+                - -c
+                - >
+                    python onyx/background/celery/celery_k8s_probe.py
+                    --probe liveness
+                    --filename /tmp/onyx_k8s_beat_liveness.txt
+---
+# Source: onyx-stack/templates/celery-worker-docfetching.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-onyx-stack-celery-worker-docfetching
+  labels:
+    helm.sh/chart: onyx-stack-0.3.1
+    app.kubernetes.io/name: onyx-stack
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: onyx-stack
+      app.kubernetes.io/instance: release-name
+      app: celery-worker-docfetching
+  template:
+    metadata:
+      annotations:
+        checksum/config: 863248a07d1a08bc151292ec79175a40fa650e1c46317d799003ef84c65d0a63
+      labels:
+        helm.sh/chart: onyx-stack-0.3.1
+        app.kubernetes.io/name: onyx-stack
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/version: "latest"
+        app.kubernetes.io/managed-by: Helm
+        app: celery-worker-docfetching
+        scope: onyx-backend-celery
+    spec:
+      serviceAccountName: onyx-service-account
+      securityContext:
+        {}
+      containers:
+        - name: celery-worker-docfetching
+          securityContext:
+            privileged: true
+            runAsUser: 0
+          image: "onyxdotapp/onyx-backend:latest"
+          imagePullPolicy: IfNotPresent
+          command:
+            [
+              "celery",
+              "-A",
+              "onyx.background.celery.versioned_apps.docfetching",
+              "worker",
+              "--pool=threads",
+              "--concurrency=2",
+              "--prefetch-multiplier=1",
+              "--loglevel=INFO",
+              "--hostname=docfetching@%n",
+              "-Q",
+              "connector_doc_fetching,user_files_indexing",
+            ]
+          resources:
+            limits:
+              cpu: 2000m
+              memory: 16Gi
+            requests:
+              cpu: 500m
+              memory: 8Gi
+          envFrom:
+            - configMapRef:
+                name: env-configmap
+          env:
+            
+            - name: "SECRETKEY"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-stack-gcp-secrets
+                  key: SECRET
+            - name: "S3_AWS_ACCESS_KEY_ID"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-objectstorage
+                  key: s3_aws_access_key_id
+            - name: "S3_AWS_SECRET_ACCESS_KEY"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-objectstorage
+                  key: s3_aws_secret_access_key
+            - name: "POSTGRES_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-stack-gcp-secrets
+                  key: postgres_password
+            - name: "ADMINPASSWORDKEY"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-stack-gcp-secrets
+                  key: POSTGRES_PASSWORD
+            - name: "READONLYPASSWORDKEY"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-stack-gcp-secrets
+                  key: DB_READONLY_PASSWORD
+            - name: "REDIS_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-redis
+                  key: redis_password
+          startupProbe:
+            
+            exec:
+              command:
+              - test
+              - -f
+              - /app/onyx/main.py
+            failureThreshold: 24
+            periodSeconds: 5
+            timeoutSeconds: 3
+          readinessProbe:
+            
+            failureThreshold: 24
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            timeoutSeconds: 3
+            exec:
+              command:
+                - /bin/bash
+                - -c
+                - >
+                    python onyx/background/celery/celery_k8s_probe.py
+                    --probe readiness
+                    --filename /tmp/onyx_k8s_docfetching_readiness.txt
+          livenessProbe:
+            
+            failureThreshold: 5
+            initialDelaySeconds: 60
+            periodSeconds: 60
+            timeoutSeconds: 3
+            exec:
+              command:
+                - /bin/bash
+                - -c
+                - >
+                    python onyx/background/celery/celery_k8s_probe.py
+                    --probe liveness
+                    --filename /tmp/onyx_k8s_docfetching_liveness.txt
+---
+# Source: onyx-stack/templates/celery-worker-docprocessing.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-onyx-stack-celery-worker-docprocessing
+  labels:
+    helm.sh/chart: onyx-stack-0.3.1
+    app.kubernetes.io/name: onyx-stack
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: onyx-stack
+      app.kubernetes.io/instance: release-name
+      app: celery-worker-docprocessing
+  template:
+    metadata:
+      annotations:
+        checksum/config: 863248a07d1a08bc151292ec79175a40fa650e1c46317d799003ef84c65d0a63
+      labels:
+        helm.sh/chart: onyx-stack-0.3.1
+        app.kubernetes.io/name: onyx-stack
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/version: "latest"
+        app.kubernetes.io/managed-by: Helm
+        app: celery-worker-docprocessing
+        scope: onyx-backend-celery
+    spec:
+      serviceAccountName: onyx-service-account
+      securityContext:
+        {}
+      containers:
+        - name: celery-worker-docprocessing
+          securityContext:
+            privileged: true
+            runAsUser: 0
+          image: "onyxdotapp/onyx-backend:latest"
+          imagePullPolicy: IfNotPresent
+          command:
+            [
+              "celery",
+              "-A",
+              "onyx.background.celery.versioned_apps.docprocessing",
+              "worker",
+              "--pool=threads",
+              "--concurrency=6",
+              "--prefetch-multiplier=1",
+              "--loglevel=INFO",
+              "--hostname=docprocessing@%n",
+              "-Q",
+              "docprocessing",
+            ]
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 12Gi
+            requests:
+              cpu: 500m
+              memory: 4Gi
+          envFrom:
+            - configMapRef:
+                name: env-configmap
+          env:
+            - name: ENABLE_MULTIPASS_INDEXING
+              value: ""
+            
+            - name: "SECRETKEY"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-stack-gcp-secrets
+                  key: SECRET
+            - name: "S3_AWS_ACCESS_KEY_ID"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-objectstorage
+                  key: s3_aws_access_key_id
+            - name: "S3_AWS_SECRET_ACCESS_KEY"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-objectstorage
+                  key: s3_aws_secret_access_key
+            - name: "POSTGRES_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-stack-gcp-secrets
+                  key: postgres_password
+            - name: "ADMINPASSWORDKEY"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-stack-gcp-secrets
+                  key: POSTGRES_PASSWORD
+            - name: "READONLYPASSWORDKEY"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-stack-gcp-secrets
+                  key: DB_READONLY_PASSWORD
+            - name: "REDIS_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-redis
+                  key: redis_password
+          startupProbe:
+            
+            exec:
+              command:
+              - test
+              - -f
+              - /app/onyx/main.py
+            failureThreshold: 24
+            periodSeconds: 5
+            timeoutSeconds: 3
+          readinessProbe:
+            
+            failureThreshold: 24
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            timeoutSeconds: 3
+            exec:
+              command:
+                - /bin/bash
+                - -c
+                - >
+                    python onyx/background/celery/celery_k8s_probe.py
+                    --probe readiness
+                    --filename /tmp/onyx_k8s_docprocessing_readiness.txt
+          livenessProbe:
+            
+            failureThreshold: 5
+            initialDelaySeconds: 60
+            periodSeconds: 60
+            timeoutSeconds: 3
+            exec:
+              command:
+                - /bin/bash
+                - -c
+                - >
+                    python onyx/background/celery/celery_k8s_probe.py
+                    --probe liveness
+                    --filename /tmp/onyx_k8s_docprocessing_liveness.txt
+---
+# Source: onyx-stack/templates/celery-worker-heavy.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-onyx-stack-celery-worker-heavy
+  labels:
+    helm.sh/chart: onyx-stack-0.3.1
+    app.kubernetes.io/name: onyx-stack
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: onyx-stack
+      app.kubernetes.io/instance: release-name
+      app: celery-worker-heavy
+  template:
+    metadata:
+      annotations:
+        checksum/config: 863248a07d1a08bc151292ec79175a40fa650e1c46317d799003ef84c65d0a63
+      labels:
+        helm.sh/chart: onyx-stack-0.3.1
+        app.kubernetes.io/name: onyx-stack
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/version: "latest"
+        app.kubernetes.io/managed-by: Helm
+        app: celery-worker-heavy
+        scope: onyx-backend-celery
+    spec:
+      serviceAccountName: onyx-service-account
+      securityContext:
+        {}
+      containers:
+        - name: celery-worker-heavy
+          securityContext:
+            privileged: true
+            runAsUser: 0
+          image: "onyxdotapp/onyx-backend:latest"
+          imagePullPolicy: IfNotPresent
+          command:
+            [
+              "celery",
+              "-A",
+              "onyx.background.celery.versioned_apps.heavy",
+              "worker",
+              "--loglevel=INFO",
+              "--hostname=heavy@%n",
+              "-Q",
+              "connector_pruning,connector_doc_permissions_sync,connector_external_group_sync,csv_generation",
+            ]
+          resources:
+            limits:
+              cpu: 2500m
+              memory: 5Gi
+            requests:
+              cpu: 1000m
+              memory: 2Gi
+          envFrom:
+            - configMapRef:
+                name: env-configmap
+          env:
+            
+            - name: "SECRETKEY"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-stack-gcp-secrets
+                  key: SECRET
+            - name: "S3_AWS_ACCESS_KEY_ID"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-objectstorage
+                  key: s3_aws_access_key_id
+            - name: "S3_AWS_SECRET_ACCESS_KEY"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-objectstorage
+                  key: s3_aws_secret_access_key
+            - name: "POSTGRES_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-stack-gcp-secrets
+                  key: postgres_password
+            - name: "ADMINPASSWORDKEY"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-stack-gcp-secrets
+                  key: POSTGRES_PASSWORD
+            - name: "READONLYPASSWORDKEY"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-stack-gcp-secrets
+                  key: DB_READONLY_PASSWORD
+            - name: "REDIS_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-redis
+                  key: redis_password
+          startupProbe:
+            
+            exec:
+              command:
+              - test
+              - -f
+              - /app/onyx/main.py
+            failureThreshold: 24
+            periodSeconds: 5
+            timeoutSeconds: 3
+          readinessProbe:
+            
+            failureThreshold: 24
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            timeoutSeconds: 3
+            exec:
+              command:
+                - /bin/bash
+                - -c
+                - >
+                    python onyx/background/celery/celery_k8s_probe.py
+                    --probe readiness
+                    --filename /tmp/onyx_k8s_heavy_readiness.txt
+          livenessProbe:
+            
+            failureThreshold: 5
+            initialDelaySeconds: 60
+            periodSeconds: 60
+            timeoutSeconds: 3
+            exec:
+              command:
+                - /bin/bash
+                - -c
+                - >
+                    python onyx/background/celery/celery_k8s_probe.py
+                    --probe liveness
+                    --filename /tmp/onyx_k8s_heavy_liveness.txt
+---
+# Source: onyx-stack/templates/celery-worker-light.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-onyx-stack-celery-worker-light
+  labels:
+    helm.sh/chart: onyx-stack-0.3.1
+    app.kubernetes.io/name: onyx-stack
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: onyx-stack
+      app.kubernetes.io/instance: release-name
+      app: celery-worker-light
+  template:
+    metadata:
+      annotations:
+        checksum/config: 863248a07d1a08bc151292ec79175a40fa650e1c46317d799003ef84c65d0a63
+      labels:
+        helm.sh/chart: onyx-stack-0.3.1
+        app.kubernetes.io/name: onyx-stack
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/version: "latest"
+        app.kubernetes.io/managed-by: Helm
+        app: celery-worker-light
+        scope: onyx-backend-celery
+    spec:
+      serviceAccountName: onyx-service-account
+      securityContext:
+        {}
+      containers:
+        - name: celery-worker-light
+          securityContext:
+            privileged: true
+            runAsUser: 0
+          image: "onyxdotapp/onyx-backend:latest"
+          imagePullPolicy: IfNotPresent
+          command:
+            [
+              "celery",
+              "-A",
+              "onyx.background.celery.versioned_apps.light",
+              "worker",
+              "--loglevel=INFO",
+              "--hostname=light@%n",
+              "-Q",
+              "vespa_metadata_sync,connector_deletion,doc_permissions_upsert,checkpoint_cleanup,index_attempt_cleanup",
+            ]
+          resources:
+            limits:
+              cpu: 2000m
+              memory: 4Gi
+            requests:
+              cpu: 1000m
+              memory: 1Gi
+          envFrom:
+            - configMapRef:
+                name: env-configmap
+          env:
+            
+            - name: "SECRETKEY"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-stack-gcp-secrets
+                  key: SECRET
+            - name: "S3_AWS_ACCESS_KEY_ID"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-objectstorage
+                  key: s3_aws_access_key_id
+            - name: "S3_AWS_SECRET_ACCESS_KEY"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-objectstorage
+                  key: s3_aws_secret_access_key
+            - name: "POSTGRES_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-stack-gcp-secrets
+                  key: postgres_password
+            - name: "ADMINPASSWORDKEY"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-stack-gcp-secrets
+                  key: POSTGRES_PASSWORD
+            - name: "READONLYPASSWORDKEY"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-stack-gcp-secrets
+                  key: DB_READONLY_PASSWORD
+            - name: "REDIS_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-redis
+                  key: redis_password
+          startupProbe:
+            
+            exec:
+              command:
+              - test
+              - -f
+              - /app/onyx/main.py
+            failureThreshold: 24
+            periodSeconds: 5
+            timeoutSeconds: 3
+          readinessProbe:
+            
+            failureThreshold: 24
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            timeoutSeconds: 3
+            exec:
+              command:
+                - /bin/bash
+                - -c
+                - >
+                    python onyx/background/celery/celery_k8s_probe.py
+                    --probe readiness
+                    --filename /tmp/onyx_k8s_light_readiness.txt
+          livenessProbe:
+            
+            failureThreshold: 5
+            initialDelaySeconds: 60
+            periodSeconds: 60
+            timeoutSeconds: 3
+            exec:
+              command:
+                - /bin/bash
+                - -c
+                - >
+                    python onyx/background/celery/celery_k8s_probe.py
+                    --probe liveness
+                    --filename /tmp/onyx_k8s_light_liveness.txt
+---
+# Source: onyx-stack/templates/celery-worker-monitoring.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-onyx-stack-celery-worker-monitoring
+  labels:
+    helm.sh/chart: onyx-stack-0.3.1
+    app.kubernetes.io/name: onyx-stack
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: onyx-stack
+      app.kubernetes.io/instance: release-name
+      app: celery-worker-monitoring
+  template:
+    metadata:
+      annotations:
+        checksum/config: 863248a07d1a08bc151292ec79175a40fa650e1c46317d799003ef84c65d0a63
+      labels:
+        helm.sh/chart: onyx-stack-0.3.1
+        app.kubernetes.io/name: onyx-stack
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/version: "latest"
+        app.kubernetes.io/managed-by: Helm
+        app: celery-worker-monitoring
+        scope: onyx-backend-celery
+    spec:
+      serviceAccountName: onyx-service-account
+      securityContext:
+        {}
+      containers:
+        - name: celery-worker-monitoring
+          securityContext:
+            privileged: true
+            runAsUser: 0
+          image: "onyxdotapp/onyx-backend:latest"
+          imagePullPolicy: IfNotPresent
+          command:
+            [
+              "celery",
+              "-A",
+              "onyx.background.celery.versioned_apps.monitoring",
+              "worker",
+              "--loglevel=INFO",
+              "--hostname=monitoring@%n",
+              "-Q",
+              "monitoring",
+            ]
+          resources:
+            limits:
+              cpu: 2000m
+              memory: 4Gi
+            requests:
+              cpu: 500m
+              memory: 1Gi
+          envFrom:
+            - configMapRef:
+                name: env-configmap
+          env:
+            
+            - name: "SECRETKEY"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-stack-gcp-secrets
+                  key: SECRET
+            - name: "S3_AWS_ACCESS_KEY_ID"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-objectstorage
+                  key: s3_aws_access_key_id
+            - name: "S3_AWS_SECRET_ACCESS_KEY"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-objectstorage
+                  key: s3_aws_secret_access_key
+            - name: "POSTGRES_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-stack-gcp-secrets
+                  key: postgres_password
+            - name: "ADMINPASSWORDKEY"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-stack-gcp-secrets
+                  key: POSTGRES_PASSWORD
+            - name: "READONLYPASSWORDKEY"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-stack-gcp-secrets
+                  key: DB_READONLY_PASSWORD
+            - name: "REDIS_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-redis
+                  key: redis_password
+          startupProbe:
+            
+            exec:
+              command:
+              - test
+              - -f
+              - /app/onyx/main.py
+            failureThreshold: 24
+            periodSeconds: 5
+            timeoutSeconds: 3
+          readinessProbe:
+            
+            failureThreshold: 24
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            timeoutSeconds: 3
+            exec:
+              command:
+                - /bin/bash
+                - -c
+                - >
+                    python onyx/background/celery/celery_k8s_probe.py
+                    --probe readiness
+                    --filename /tmp/onyx_k8s_monitoring_readiness.txt
+          livenessProbe:
+            
+            failureThreshold: 5
+            initialDelaySeconds: 60
+            periodSeconds: 60
+            timeoutSeconds: 3
+            exec:
+              command:
+                - /bin/bash
+                - -c
+                - >
+                    python onyx/background/celery/celery_k8s_probe.py
+                    --probe liveness
+                    --filename /tmp/onyx_k8s_monitoring_liveness.txt
+---
+# Source: onyx-stack/templates/celery-worker-primary.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-onyx-stack-celery-worker-primary
+  labels:
+    helm.sh/chart: onyx-stack-0.3.1
+    app.kubernetes.io/name: onyx-stack
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: onyx-stack
+      app.kubernetes.io/instance: release-name
+      app: celery-worker-primary
+  template:
+    metadata:
+      annotations:
+        checksum/config: 863248a07d1a08bc151292ec79175a40fa650e1c46317d799003ef84c65d0a63
+      labels:
+        helm.sh/chart: onyx-stack-0.3.1
+        app.kubernetes.io/name: onyx-stack
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/version: "latest"
+        app.kubernetes.io/managed-by: Helm
+        app: celery-worker-primary
+        scope: onyx-backend-celery
+    spec:
+      serviceAccountName: onyx-service-account
+      securityContext:
+        {}
+      containers:
+        - name: celery-worker-primary
+          securityContext:
+            privileged: true
+            runAsUser: 0
+          image: "onyxdotapp/onyx-backend:latest"
+          imagePullPolicy: IfNotPresent
+          command:
+            [
+              "celery",
+              "-A",
+              "onyx.background.celery.versioned_apps.primary",
+              "worker",
+              "--loglevel=INFO",
+              "--hostname=primary@%n",
+              "-Q",
+              "celery,periodic_tasks",
+            ]
+          resources:
+            limits:
+              cpu: 2000m
+              memory: 16Gi
+            requests:
+              cpu: 1000m
+              memory: 8Gi
+          envFrom:
+            - configMapRef:
+                name: env-configmap
+          env:
+            
+            - name: "SECRETKEY"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-stack-gcp-secrets
+                  key: SECRET
+            - name: "S3_AWS_ACCESS_KEY_ID"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-objectstorage
+                  key: s3_aws_access_key_id
+            - name: "S3_AWS_SECRET_ACCESS_KEY"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-objectstorage
+                  key: s3_aws_secret_access_key
+            - name: "POSTGRES_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-stack-gcp-secrets
+                  key: postgres_password
+            - name: "ADMINPASSWORDKEY"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-stack-gcp-secrets
+                  key: POSTGRES_PASSWORD
+            - name: "READONLYPASSWORDKEY"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-stack-gcp-secrets
+                  key: DB_READONLY_PASSWORD
+            - name: "REDIS_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-redis
+                  key: redis_password
+          startupProbe:
+            
+            exec:
+              command:
+              - test
+              - -f
+              - /app/onyx/main.py
+            failureThreshold: 24
+            periodSeconds: 5
+            timeoutSeconds: 3
+          readinessProbe:
+            
+            failureThreshold: 24
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            timeoutSeconds: 3
+            exec:
+              command:
+                - /bin/bash
+                - -c
+                - >
+                    python onyx/background/celery/celery_k8s_probe.py
+                    --probe readiness
+                    --filename /tmp/onyx_k8s_primary_readiness.txt
+          livenessProbe:
+            
+            failureThreshold: 5
+            initialDelaySeconds: 60
+            periodSeconds: 60
+            timeoutSeconds: 3
+            exec:
+              command:
+                - /bin/bash
+                - -c
+                - >
+                    python onyx/background/celery/celery_k8s_probe.py
+                    --probe liveness
+                    --filename /tmp/onyx_k8s_primary_liveness.txt
+---
+# Source: onyx-stack/templates/celery-worker-user-files-indexing.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-onyx-stack-celery-worker-user-files-indexing
+  labels:
+    helm.sh/chart: onyx-stack-0.3.1
+    app.kubernetes.io/name: onyx-stack
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: onyx-stack
+      app.kubernetes.io/instance: release-name
+      app: celery-worker-user-files-indexing
+  template:
+    metadata:
+      annotations:
+        checksum/config: 863248a07d1a08bc151292ec79175a40fa650e1c46317d799003ef84c65d0a63
+      labels:
+        helm.sh/chart: onyx-stack-0.3.1
+        app.kubernetes.io/name: onyx-stack
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/version: "latest"
+        app.kubernetes.io/managed-by: Helm
+        app: celery-worker-user-files-indexing
+        scope: onyx-backend-celery
+    spec:
+      serviceAccountName: onyx-service-account
+      securityContext:
+        {}
+      containers:
+        - name: celery-worker-user-files-indexing
+          securityContext:
+            privileged: true
+            runAsUser: 0
+          image: "onyxdotapp/onyx-backend:latest"
+          imagePullPolicy: IfNotPresent
+          command:
+            [
+              "celery",
+              "-A",
+              "onyx.background.celery.versioned_apps.docfetching",
+              "worker",
+              "--loglevel=INFO",
+              "--hostname=user-files-indexing@%n",
+              "-Q",
+              "user_files_indexing",
+            ]
+          resources:
+            limits:
+              cpu: 4000m
+              memory: 12Gi
+            requests:
+              cpu: 2000m
+              memory: 6Gi
+          envFrom:
+            - configMapRef:
+                name: env-configmap
+          env:
+            
+            - name: "SECRETKEY"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-stack-gcp-secrets
+                  key: SECRET
+            - name: "S3_AWS_ACCESS_KEY_ID"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-objectstorage
+                  key: s3_aws_access_key_id
+            - name: "S3_AWS_SECRET_ACCESS_KEY"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-objectstorage
+                  key: s3_aws_secret_access_key
+            - name: "POSTGRES_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-stack-gcp-secrets
+                  key: postgres_password
+            - name: "ADMINPASSWORDKEY"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-stack-gcp-secrets
+                  key: POSTGRES_PASSWORD
+            - name: "READONLYPASSWORDKEY"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-stack-gcp-secrets
+                  key: DB_READONLY_PASSWORD
+            - name: "REDIS_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-redis
+                  key: redis_password
+          startupProbe:
+            
+            exec:
+              command:
+              - test
+              - -f
+              - /app/onyx/main.py
+            failureThreshold: 24
+            periodSeconds: 5
+            timeoutSeconds: 3
+          readinessProbe:
+            
+            failureThreshold: 24
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            timeoutSeconds: 3
+            exec:
+              command:
+                - /bin/bash
+                - -c
+                - >
+                    python onyx/background/celery/celery_k8s_probe.py
+                    --probe readiness
+                    --filename /tmp/onyx_k8s_userfilesindexing_readiness.txt
+          livenessProbe:
+            
+            failureThreshold: 5
+            initialDelaySeconds: 60
+            periodSeconds: 60
+            timeoutSeconds: 3
+            exec:
+              command:
+                - /bin/bash
+                - -c
+                - >
+                    python onyx/background/celery/celery_k8s_probe.py
+                    --probe liveness
+                    --filename /tmp/onyx_k8s_userfilesindexing_liveness.txt
+---
+# Source: onyx-stack/templates/indexing-model-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-onyx-stack-indexing-model
+  labels:
+    helm.sh/chart: onyx-stack-0.3.1
+    app.kubernetes.io/name: onyx-stack
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: onyx-stack
+      app.kubernetes.io/instance: release-name
+      app: indexing-model-server
+  template:
+    metadata:
+      annotations:
+        checksum/config: 863248a07d1a08bc151292ec79175a40fa650e1c46317d799003ef84c65d0a63
+      labels:
+        helm.sh/chart: onyx-stack-0.3.1
+        app.kubernetes.io/name: onyx-stack
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/version: "latest"
+        app.kubernetes.io/managed-by: Helm
+        app: indexing-model-server
+    spec:
+      containers:
+      - name: indexing-model-server
+        image: "onyxdotapp/onyx-model-server:latest"
+        imagePullPolicy: IfNotPresent
+        command: [ "uvicorn", "model_server.main:app", "--host", "0.0.0.0", "--port", "9000", "--limit-concurrency", "10" ]
+        ports:
+        - name: model-server
+          containerPort: 9000
+          protocol: TCP
+        envFrom:
+          - configMapRef:
+              name: env-configmap
+        env:
+          - name: INDEXING_ONLY
+            value: "True"
+          
+          - name: "SECRETKEY"
+            valueFrom:
+              secretKeyRef:
+                name: onyx-stack-gcp-secrets
+                key: SECRET
+          - name: "S3_AWS_ACCESS_KEY_ID"
+            valueFrom:
+              secretKeyRef:
+                name: onyx-objectstorage
+                key: s3_aws_access_key_id
+          - name: "S3_AWS_SECRET_ACCESS_KEY"
+            valueFrom:
+              secretKeyRef:
+                name: onyx-objectstorage
+                key: s3_aws_secret_access_key
+          - name: "POSTGRES_PASSWORD"
+            valueFrom:
+              secretKeyRef:
+                name: onyx-stack-gcp-secrets
+                key: postgres_password
+          - name: "ADMINPASSWORDKEY"
+            valueFrom:
+              secretKeyRef:
+                name: onyx-stack-gcp-secrets
+                key: POSTGRES_PASSWORD
+          - name: "READONLYPASSWORDKEY"
+            valueFrom:
+              secretKeyRef:
+                name: onyx-stack-gcp-secrets
+                key: DB_READONLY_PASSWORD
+          - name: "REDIS_PASSWORD"
+            valueFrom:
+              secretKeyRef:
+                name: onyx-redis
+                key: redis_password
+        securityContext:
+          privileged: true
+          runAsUser: 0
+        resources:
+          limits:
+            cpu: 4000m
+            memory: 10Gi
+          requests:
+            cpu: 2000m
+            memory: 6Gi
+---
+# Source: onyx-stack/templates/inference-model-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-onyx-stack-inference-model
+  labels:
+    app: inference-model-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: inference-model-server
+  template:
+    metadata:
+      annotations:
+        checksum/config: 863248a07d1a08bc151292ec79175a40fa650e1c46317d799003ef84c65d0a63
+      labels:
+        app: inference-model-server
+    spec:
+      containers:
+      - name: model-server-inference
+        image: "onyxdotapp/onyx-model-server:latest"
+        imagePullPolicy: IfNotPresent
+        command: [ "uvicorn", "model_server.main:app", "--host", "0.0.0.0", "--port", "9000" ]
+        ports:
+        - name: model-server
+          containerPort: 9000
+          protocol: TCP
+        envFrom:
+        - configMapRef:
+            name: env-configmap
+        env:
+            
+            - name: "SECRETKEY"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-stack-gcp-secrets
+                  key: SECRET
+            - name: "S3_AWS_ACCESS_KEY_ID"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-objectstorage
+                  key: s3_aws_access_key_id
+            - name: "S3_AWS_SECRET_ACCESS_KEY"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-objectstorage
+                  key: s3_aws_secret_access_key
+            - name: "POSTGRES_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-stack-gcp-secrets
+                  key: postgres_password
+            - name: "ADMINPASSWORDKEY"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-stack-gcp-secrets
+                  key: POSTGRES_PASSWORD
+            - name: "READONLYPASSWORDKEY"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-stack-gcp-secrets
+                  key: DB_READONLY_PASSWORD
+            - name: "REDIS_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-redis
+                  key: redis_password
+        securityContext:
+          privileged: true
+          runAsUser: 0
+        resources:
+          limits:
+            cpu: 4000m
+            memory: 10Gi
+          requests:
+            cpu: 2000m
+            memory: 6Gi
+---
+# Source: onyx-stack/templates/slackbot.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-onyx-stack-slackbot
+  labels:
+    helm.sh/chart: onyx-stack-0.3.1
+    app.kubernetes.io/name: onyx-stack
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: onyx-stack
+      app.kubernetes.io/instance: release-name
+      app: slack-bot
+  template:
+    metadata:
+      annotations:
+        checksum/config: 863248a07d1a08bc151292ec79175a40fa650e1c46317d799003ef84c65d0a63
+      labels:
+        helm.sh/chart: onyx-stack-0.3.1
+        app.kubernetes.io/name: onyx-stack
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/version: "latest"
+        app.kubernetes.io/managed-by: Helm
+        app: slack-bot
+        scope: onyx-backend
+    spec:
+      serviceAccountName: onyx-service-account
+      securityContext:
+        {}
+      containers:
+        - name: slackbot
+          securityContext:
+            {}
+          image: "onyxdotapp/onyx-backend:latest"
+          imagePullPolicy: IfNotPresent
+          command: ["python", "onyx/onyxbot/slack/listener.py"]
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 2000Mi
+            requests:
+              cpu: 500m
+              memory: 500Mi
+          envFrom:
+            - configMapRef:
+                name: env-configmap
+          env:
+            
+            - name: "SECRETKEY"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-stack-gcp-secrets
+                  key: SECRET
+            - name: "S3_AWS_ACCESS_KEY_ID"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-objectstorage
+                  key: s3_aws_access_key_id
+            - name: "S3_AWS_SECRET_ACCESS_KEY"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-objectstorage
+                  key: s3_aws_secret_access_key
+            - name: "POSTGRES_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-stack-gcp-secrets
+                  key: postgres_password
+            - name: "ADMINPASSWORDKEY"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-stack-gcp-secrets
+                  key: POSTGRES_PASSWORD
+            - name: "READONLYPASSWORDKEY"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-stack-gcp-secrets
+                  key: DB_READONLY_PASSWORD
+            - name: "REDIS_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-redis
+                  key: redis_password
+---
+# Source: onyx-stack/templates/webserver-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-onyx-stack-web-server
+  labels:
+    helm.sh/chart: onyx-stack-0.3.1
+    app.kubernetes.io/name: onyx-stack
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: onyx-stack
+      app.kubernetes.io/instance: release-name
+      app: web-server
+  template:
+    metadata:
+      annotations:
+        checksum/config: 863248a07d1a08bc151292ec79175a40fa650e1c46317d799003ef84c65d0a63
+      labels:
+        helm.sh/chart: onyx-stack-0.3.1
+        app.kubernetes.io/name: onyx-stack
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/version: "latest"
+        app.kubernetes.io/managed-by: Helm
+        app: web-server
+    spec:
+      serviceAccountName: onyx-service-account
+      securityContext:
+        {}
+      containers:
+        - name: web-server
+          securityContext:
+            {}
+          image: "gcr.io/onyx-test-ramdev-live/webserver:latest"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+            requests:
+              cpu: 200m
+              memory: 512Mi
+          envFrom:
+            - configMapRef:
+                name: env-configmap
+          env:
+            
+            - name: "SECRETKEY"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-stack-gcp-secrets
+                  key: SECRET
+            - name: "S3_AWS_ACCESS_KEY_ID"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-objectstorage
+                  key: s3_aws_access_key_id
+            - name: "S3_AWS_SECRET_ACCESS_KEY"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-objectstorage
+                  key: s3_aws_secret_access_key
+            - name: "POSTGRES_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-stack-gcp-secrets
+                  key: postgres_password
+            - name: "ADMINPASSWORDKEY"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-stack-gcp-secrets
+                  key: POSTGRES_PASSWORD
+            - name: "READONLYPASSWORDKEY"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-stack-gcp-secrets
+                  key: DB_READONLY_PASSWORD
+            - name: "REDIS_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  name: onyx-redis
+                  key: redis_password
+---
+# Source: onyx-stack/charts/vespa/templates/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: da-vespa
+  labels:
+    app: vespa
+spec:
+  serviceName: vespa-service   # This should match service.yaml/metadata/name
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vespa
+      app.kubernetes.io/instance: onyx
+      app.kubernetes.io/name: vespa
+  template:
+    metadata:
+      labels:
+        app: vespa
+        app.kubernetes.io/instance: onyx
+        app.kubernetes.io/name: vespa
+    spec:
+      serviceAccountName: default
+      nodeSelector:
+        workload: memory-intensive
+      securityContext:
+        null
+      containers:
+        - name: vespa
+          securityContext:
+            privileged: true
+            runAsUser: 0
+          image: "vespaengine/vespa:8.526.15"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 19071
+            - containerPort: 8081
+#           readinessProbe:
+#             httpGet:
+#               path: /state/v1/health
+#               port: 19071
+#               scheme: HTTP
+          resources:
+            limits:
+              cpu: 2000m
+              memory: 4Gi
+            requests:
+              cpu: 500m
+              memory: 2Gi
+          volumeMounts:
+            - mountPath: /opt/vespa/var/
+              name: vespa-storage
+          env:
+          - name: VESPA_CONFIGSERVERS
+            value: da-vespa-0.vespa-service.onyx.svc.cluster.local
+          - name: VESPA_SKIP_UPGRADE_CHECK
+            value: "true"
+
+  volumeClaimTemplates:
+  - metadata:
+      name: vespa-storage
+    spec:
+      accessModes: [ReadWriteOnce]
+      storageClassName: standard-rwo
+      resources:
+        requests:
+          storage: 50Gi
+---
+# Source: onyx-stack/templates/ingress-api.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: release-name-onyx-stack-ingress-api
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    cert-manager.io/cluster-issuer: release-name-onyx-stack-letsencrypt
+spec:
+  rules:
+    - host: onyx.local
+      http:
+        paths:
+          - path: /api(/|$)(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: release-name-onyx-stack-api-service
+                port:
+                  number: 8080
+  tls:
+    - hosts:
+        - onyx.local
+      secretName: release-name-onyx-stack-ingress-api-tls
+---
+# Source: onyx-stack/templates/ingress-gcp.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: release-name-onyx-stack-ingress-gcp
+  annotations:
+    kubernetes.io/ingress.class: "gce"
+    kubernetes.io/ingress.global-static-ip-name: "onyx-lb-ip"
+    networking.gke.io/managed-certificates: "onyx-managed-cert"
+spec:
+  rules:
+    - host: ramdev.live
+      http:
+        paths:
+          # API paths
+          - path: /api/*
+            pathType: Prefix
+            backend:
+              service:
+                name: release-name-onyx-stack-api-service
+                port:
+                  number: 8080
+          # Web server paths
+          - path: /*
+            pathType: Prefix
+            backend:
+              service:
+                name: release-name-onyx-stack-webserver-service
+                port:
+                  number: 3000
+---
+# Source: onyx-stack/templates/ingress-webserver.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: release-name-onyx-stack-ingress-webserver
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: release-name-onyx-stack-letsencrypt
+    kubernetes.io/tls-acme: "true"
+spec:
+  rules:
+    - host: onyx.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: release-name-onyx-stack-webserver
+                port:
+                  number: 3000
+  tls:
+    - hosts:
+        - onyx.local
+      secretName: release-name-onyx-stack-ingress-webserver-tls
+---
+# Source: onyx-stack/templates/ingress-gcp.yaml
+# GCP Managed Certificate
+apiVersion: networking.gke.io/v1
+kind: ManagedCertificate
+metadata:
+  name: onyx-managed-cert
+spec:
+  domains:
+    - ramdev.live
+    - www.ramdev.live
+---
+# Source: onyx-stack/templates/api-scaledobject.yaml
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: release-name-onyx-stack-api
+  labels:
+    helm.sh/chart: onyx-stack-0.3.1
+    app.kubernetes.io/name: onyx-stack
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: release-name-onyx-stack-api-server
+  minReplicaCount: 1
+  maxReplicaCount: 3
+  pollingInterval: 30
+  cooldownPeriod: 300
+  idleReplicaCount: 1
+  fallback:
+    failureThreshold: 3
+    replicas: 1
+  triggers:
+    - type: cpu
+      metricType: Utilization
+      metadata:
+        value: "70"
+    - type: memory
+      metricType: Utilization
+      metadata:
+        value: "80"
+---
+# Source: onyx-stack/templates/webserver-scaledobject.yaml
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: release-name-onyx-stack-web-server
+  labels:
+    helm.sh/chart: onyx-stack-0.3.1
+    app.kubernetes.io/name: onyx-stack
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: release-name-onyx-stack-web-server
+  minReplicaCount: 1
+  maxReplicaCount: 3
+  pollingInterval: 30
+  cooldownPeriod: 300
+  idleReplicaCount: 1
+  fallback:
+    failureThreshold: 3
+    replicas: 1
+  triggers:
+    - type: cpu
+      metricType: Utilization
+      metadata:
+        value: "70"
+    - type: memory
+      metricType: Utilization
+      metadata:
+        value: "80"
+---
+# Source: onyx-stack/charts/vespa/templates/tests/test-connection.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: release-name-vespa-test-connection
+  labels:
+    helm.sh/chart: vespa-0.2.24
+    app.kubernetes.io/name: vespa
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "8.526.15"
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: [da-vespa-0.vespa-service:19071/state/v1/health]
+  restartPolicy: Never
+---
+# Source: onyx-stack/templates/tests/test-connection.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "release-name-onyx-stack-test-connection"
+  labels:
+    helm.sh/chart: onyx-stack-0.3.1
+    app.kubernetes.io/name: onyx-stack
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
+spec:
+  containers:
+    - name: curl
+      image: curlimages/curl:8.10.1
+      command:
+        - /bin/sh
+        - -c
+      args:
+        - |
+          SVC="release-name-onyx-stack-webserver"
+          PORT="3000"
+          URL="http://${SVC}:${PORT}/"
+          for i in $(seq 1 40); do
+            echo "Attempt $i: curl ${URL}"
+            # Treat any successful TCP/HTTP response as success (even 5xx).
+            # curl exits 0 on HTTP 4xx/5xx if -f is not used; non-zero indicates connection error.
+            if curl --connect-timeout 3 --max-time 5 -sS -o /dev/null "$${URL}"; then
+              echo "Connection succeeded"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "Service not reachable after 40 attempts"
+          exit 1
+  restartPolicy: Never

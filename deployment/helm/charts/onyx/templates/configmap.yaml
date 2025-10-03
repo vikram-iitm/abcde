@@ -5,15 +5,21 @@ metadata:
   labels:
     {{- include "onyx-stack.labels" . | nindent 4 }}
 data:
-  INTERNAL_URL: "http://{{ include "onyx-stack.fullname" . }}-api-service:{{ .Values.api.service.port | default 8080 }}"
+  INTERNAL_URL: "http://{{ include "onyx-stack.fullname" . }}-api-service:{{ .Values.api.service.port | default "8080" | toString }}"
   {{- if .Values.postgresql.enabled }}
   POSTGRES_HOST: {{ .Release.Name }}-postgresql
+  {{- else if .Values.externalPostgresql.enabled }}
+  POSTGRES_HOST: {{ .Values.externalPostgresql.host }}
+  POSTGRES_PORT: "{{ .Values.externalPostgresql.port | default "5432" }}"
   {{- end }}
   {{- if .Values.vespa.enabled }}
   VESPA_HOST: {{ .Values.vespa.name }}.{{ .Values.vespa.service.name }}.{{ .Release.Namespace }}.svc.cluster.local
   {{- end }}
   {{- if .Values.redis.enabled }}
   REDIS_HOST: {{ .Release.Name }}-redis-master
+  {{- else if .Values.externalRedis.enabled }}
+  REDIS_HOST: {{ .Values.externalRedis.host }}
+  REDIS_PORT: "{{ .Values.externalRedis.port | default "6379" }}"
   {{- end }}
   MODEL_SERVER_HOST: "{{ include "onyx-stack.fullname" . }}-inference-model-service"
   INDEXING_MODEL_SERVER_HOST: "{{ include "onyx-stack.fullname" . }}-indexing-model-service"
@@ -23,5 +29,5 @@ data:
 {{- end }}
 {{- end }}
   {{- if .Values.minio.enabled }}
-  S3_ENDPOINT_URL: "http://{{ .Release.Name }}-minio:{{ .Values.minio.service.ports.api | default 9000 }}"
+  S3_ENDPOINT_URL: "http://{{ .Release.Name }}-minio:{{ .Values.minio.service.ports.api | default 9000 | toString }}"
   {{- end }}
